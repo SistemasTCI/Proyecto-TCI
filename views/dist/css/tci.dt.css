@@ -1,0 +1,144 @@
+*{
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
+}
+#tbInvoices {
+    width:100%;
+    overflow-x: auto;
+}
+#tbInvoices td:nth-child(1){
+    width: 8%;
+}
+#tbInvoices td:nth-child(2){
+    width: 8%;
+}
+#tbInvoices td:nth-child(3){
+    width: 8%;
+}
+#tbInvoices td:nth-child(4){
+    width: 8%;
+}
+#tbInvoices td:nth-child(5){
+    width: 8%;
+}
+#tbInvoices td:nth-child(6){
+    width: 8%;
+}
+#tbInvoices td:nth-child(7){
+    width: 8%;
+}
+#tbInvoices td:nth-child(8){
+    width: 8%;
+}
+#tbInvoices td:nth-child(9){
+    width: 8%;
+}
+#tbInvoices td:nth-child(10){
+    width: 8%;
+}
+#tbInvoices td:nth-child(11){
+    width: 8%;
+}
+#tbInvoices td:nth-child(12){
+    width: 8%;
+}
+.content-wrapper {
+    overflow-x: hidden;
+    background: white; 
+}
+.card-header{
+    background-color:rgba(0,0,0,.03);  
+}
+.breadcrumb{
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    list-style: none;
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+}
+.swal2-container {
+    display: -webkit-box;
+    display: flex;
+    position: fixed;
+    z-index: 10000 !important;
+}
+.modal_lv1 {
+    z-index: 1995; 
+}
+.modal_lv2 {
+    z-index: 1996; 
+}
+.modal_lv3 {
+    z-index: 1997; 
+}
+.modal_lv4 {
+    z-index: 1998; 
+}
+.tooltip {
+    z-index: 1999; 
+}
+
+/*Tabla de clientes en Modulo de EDIS*/
+#opEdi_mdlClientes_tbClientes {
+    /*width:100%;*/
+    overflow-x: auto;
+    table-layout: fixed;
+   /* background: turquoise;*/
+}
+#opEdi_mdlClientes_tbClientes tbody td:nth-child(2){ 
+    width: 10%;
+}
+#opEdi_mdlClientes_tbClientes tr td { 
+    width: 10%;
+}
+
+
+/*ESTILOS EJECUTIVOS */
+#tblReportByYear {
+    background-color: #fff;
+}
+
+#tblReportByYear th, #tblReportByYear td {
+    padding: 8px;
+}
+
+#tblReportByYear th {
+    background-color: #f2f2f2;
+}
+
+#tblReportByYear th, #tblReportByYear td {
+    text-align: center;
+}
+
+#tblReportByYear th:first-child, #tblReportByYear td:first-child {
+    text-align: left;
+}
+
+#tblReportByYear th:last-child, #tblReportByYear td:last-child {
+    text-align: right;
+}
+
+
+/* Estilos para la tabla */
+.table-executive {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.table-executive th, .table-executive td {
+    border: 1px solid #dddddd;
+    text-align: center;
+    padding: 8px;
+}
+
+.table-executive th {
+    background-color: #f2f2f2;
+}
+
+/* Estilos para las filas impares */
+.table-executive tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}

@@ -1,23 +1,48 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> <!-- Bootstrap CSS -->
-    <link href="/views/dist/css/ad_tf_style.css" rel="stylesheet"> <!-- Archivo CSS -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"> <!-- Font Awesome -->
-</head>
-<body>
 <?php
-$estado2 = 'Activo'; // Ejemplo de estado
-$estado = 'Inactivo'; // Ejemplo de estado diferente
-$estado3 = 'En Validacion'; // Ejemplo de estado diferente
-$estado4 = 'Sin Contactos'; // Ejemplo de estado diferente
-$estado5 = 'Expirado'; // Ejemplo de estado diferente
-$claseEstado = estadoTarifario($estado); // Llamada a la función que devuelve la clase CSS basada en el estado del tarifario
-$claseEstado2 = estadoTarifario($estado2); // Llamada a la función que devuelve la clase CSS basada en el estado del tarifario
-$claseEstado3 = estadoTarifario($estado3); // Llamada a la función que devuelve la clase CSS basada en el estado del tarifario
-$claseEstado4 = estadoTarifario($estado4); // Llamada a la función que devuelve la clase CSS basada en el estado del tarifario
-$claseEstado5 = estadoTarifario($estado5); // Llamada a la función que devuelve la clase CSS basada en el estado del tarifario
-// Función que devuelve la clase CSS basada en el estado del tarifario
+// Conectar a la base de datos
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "tarifario_test";
+// Crear conexión
+$conn = new mysqli($servername, $username, $password, $dbname);
+// Verificar conexión
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+// Ejecutar la consulta
+$query = "
+    SELECT 
+        u.nombre AS cliente_nombre,
+        c.numero_identificacion_fiscal,
+        u.correo,
+        c.telefono,
+        c.direccion,
+        t.estado,
+        t.tarifario_id,
+        t.fecha_creacion AS fecha_actualizacion,
+        t.fecha_expiracion,
+        u2.nombre AS usuario_actualizo
+    FROM
+        clientes c
+        JOIN (
+            SELECT 
+                t1.cliente_id,
+                MAX(t1.fecha_creacion) AS ultima_fecha
+            FROM 
+                tarifarios t1
+            GROUP BY 
+                t1.cliente_id
+        ) ultimos_tarifarios ON c.cliente_id = ultimos_tarifarios.cliente_id
+        JOIN tarifarios t ON c.cliente_id = t.cliente_id 
+                          AND t.fecha_creacion = ultimos_tarifarios.ultima_fecha
+        JOIN user u ON c.administrador_id = u.user_id
+        JOIN user u2 ON t.usuario_id = u2.user_id;
+";
+$result = $conn->query($query);
+if (!$result) {
+    die("Query failed: " . $conn->error);
+}
 function estadoTarifario($estado) {
     switch ($estado) {
         case 'Activo':
@@ -37,10 +62,16 @@ function estadoTarifario($estado) {
 $infocliente = "Aquí va la información del cliente"; // Reemplaza esto con la información real del cliente
 $estado1 = "Aquí va el estado"; // Reemplaza esto con el estado real del tarifario
 ?>
-
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> <!-- Bootstrap CSS -->
+    <link href="public/css/ad_tf_style.css" rel="stylesheet"> <!-- Archivo CSS -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"> <!-- Font Awesome -->
+</head>
+<body>
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script> <!-- jQuery -->
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script> <!-- Bootstrap JS -->
-
 <!-- Tabla Principal-->
 <div class="container">
     <nav class="navbar navbar-expand-lg navbar-light bg-light w-100">
@@ -67,7 +98,6 @@ $estado1 = "Aquí va el estado"; // Reemplaza esto con el estado real del tarifa
         <div>
             <input class="form-control mr-sm-2" type="search" placeholder="Buscar" aria-label="Buscar" style="width: 300px;">
             <button class="btn btn-light my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>
-            <button class="btn btn-light my-2 my-sm-0" type="submit"><i class="fas fa-print"></i> Template</button>
         </div>
     </form>
     <div class="table-container">
@@ -87,91 +117,37 @@ $estado1 = "Aquí va el estado"; // Reemplaza esto con el estado real del tarifa
                 </tr>
             </thead>
             <tbody>
+                <?php while ($row = $result->fetch_assoc()): 
+                    $estado = $row['estado'];
+                    $id_tarifario = $row['tarifario_id'];
+                    $claseEstado = estadoTarifario($estado);
+                ?>
                 <tr>
-                    <td>Cliente 1</td>
-                    <td>12345678A</td>
-                    <td>Dato 1</td>
-                    <td>Dato 2</td>
-                    <td>Dirección 1</td>
-                    <td><button type="button" class="<?= $claseEstado ?>"><?= $estado ?></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#previewModal"><i class="fas fa-eye"></i></button></td>
-                    <td>2023-06-01</td>
-                    <td>2024-11-01</td>
-                    <td>Usuario de Actualización</td>
+                <td><?= htmlspecialchars($row['cliente_nombre']); ?></td>
+                    <td><?= htmlspecialchars($row['numero_identificacion_fiscal']); ?></td>
+                    <td><?= htmlspecialchars($row['correo']); ?></td>
+                    <td><?= htmlspecialchars($row['telefono']); ?></td>
+                    <td><?= htmlspecialchars($row['direccion']); ?></td>
+                    <td><button type="button" class="<?= $claseEstado ?>"><?= $estado?></button></td>
+                    <td><button type="button" class="btn btn-light valor-btn" data-id=<?="$id_tarifario"?> data-toggle="modal" data-target="#previewModal"><i class="fas fa-eye"></i></button></td>
+                    <td><?= htmlspecialchars($row['fecha_actualizacion']); ?></td>
+                    <td><?= htmlspecialchars($row['fecha_expiracion']?? ''); ?></td>
+                    <td><?= htmlspecialchars($row['usuario_actualizo']); ?></td>
                     <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#histModal"><i class="fas fa-landmark"></i></button></td>
                     <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#addModal"><i class="fas fa-file"></i></button></td>
                     <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#contModal"><i class="fas fa-address-card"></i></button></td>
                 </tr>
-                <tr>
-                    <td>Cliente 2</td>
-                    <td>12345678B</td>
-                    <td>Dato 1.1</td>
-                    <td>Dato 2.1</td>
-                    <td>Dirección 2</td>
-                    <td><button type="button" class="<?= $claseEstado2 ?>"><?= $estado2 ?></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#previewModal"><i class="fas fa-eye"></i></button></td>
-                    <td>2023-06-02</td>
-                    <td>2024-11-02</td>
-                    <td>Usuario de Actualización</td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#histModal"><i class="fas fa-landmark"></i></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#addModal"><i class="fas fa-file"></i></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#contModal"><i class="fas fa-address-card"></i></button></td>
-                </tr>
-                <tr>
-                    <td>Cliente 3</td>
-                    <td>12345678C</td>
-                    <td>Dato 1.2</td>
-                    <td>Dato 2.2</td>
-                    <td>Dirección 3</td>
-                    <td><button type="button" class="<?= $claseEstado3 ?>"><?= $estado3 ?></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#previewModal"><i class="fas fa-eye"></i></button></td>
-                    <td>2023-06-03</td>
-                    <td>2024-11-03</td>
-                    <td>Usuario de Actualización</td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#histModal"><i class="fas fa-landmark"></i></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#addModal"><i class="fas fa-file"></i></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#contModal"><i class="fas fa-address-card"></i></button></td>
-                </tr>
-                <tr>
-                    <td>Cliente 4</td>
-                    <td>12345678D</td>
-                    <td>Dato 1.3</td>
-                    <td>Dato 2.3</td>
-                    <td>Dirección 4</td>
-                    <td><button type="button" class="<?= $claseEstado4 ?>"><?= $estado4 ?></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#previewModal"><i class="fas fa-eye"></i></button></td>
-                    <td>2023-06-04</td>
-                    <td>2024-11-04</td>
-                    <td>Usuario de Actualización</td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#histModal"><i class="fas fa-landmark"></i></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#addModal"><i class="fas fa-file"></i></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#contModal"><i class="fas fa-address-card"></i></button></td>
-                </tr>
-                <tr>
-                    <td>Cliente 5</td>
-                    <td>12345678F</td>
-                    <td>Dato 1.4</td>
-                    <td>Dato 2.4</td>
-                    <td>Dirección 5</td>
-                    <td><button type="button" class="<?= $claseEstado5 ?>"><?= $estado5 ?></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#previewModal"><i class="fas fa-eye"></i></button></td>
-                    <td>2023-06-05</td>
-                    <td>2024-11-05</td>
-                    <td>Usuario de Actualización</td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#histModal"><i class="fas fa-landmark"></i></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#addModal"><i class="fas fa-file"></i></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#contModal"><i class="fas fa-address-card"></i></button></td>
-                </tr>
+                
+                <?php 
+            endwhile; ?>
             </tbody>
         </table>
     </div>
 </div>
-
 <!-- Footer -->
 <footer class="bg-body-tertiary text-center text-lg-start">
     <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.05);"></div>
 </footer>
-
 <!-- Modal de Envío -->
 <div class="modal fade" id="sendModal" tabindex="-1" role="dialog" aria-labelledby="sendModal" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -220,7 +196,6 @@ $estado1 = "Aquí va el estado"; // Reemplaza esto con el estado real del tarifa
         </div>
     </div>
 </div>
-
 <!-- Modal Previsualización -->
 <div class="modal fade" id="previewModal" tabindex="-1" role="dialog" aria-labelledby="previewModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -238,7 +213,6 @@ $estado1 = "Aquí va el estado"; // Reemplaza esto con el estado real del tarifa
         </div>
     </div>
 </div>
-
 <!-- Modal Contactos -->
 <div class="modal fade" id="contModal" tabindex="-1" role="dialog" aria-labelledby="contModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -283,7 +257,6 @@ $estado1 = "Aquí va el estado"; // Reemplaza esto con el estado real del tarifa
         </div>
     </div>
 </div>
-
 <!-- Modal Histórico -->
 <div class="modal fade" id="histModal" tabindex="-1" role="dialog" aria-labelledby="histModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
@@ -322,41 +295,105 @@ $estado1 = "Aquí va el estado"; // Reemplaza esto con el estado real del tarifa
         </div>
     </div>
 </div>
-
 <!-- Modal Agregar -->
-<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<div class="modal fade bd-example-modal-xl" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addModalLabel">Actualización de Tarifario</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
-            <div class="modal-body" id="infocliente" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-                <!-- Aquí puedes agregar el contenido que deseas previsualizar -->
-                <div style="background-color: #E0F9AF; padding: 20px; margin: 10px; width: 100%;">
-                    <span><?= $infocliente ?> </span>
-                </div>
-                <div style="padding: 20px; width: 100%;" id="datTarifario">
-                    <h1>Tarifario de servicios</h1>
-                    <span>ID: 123456</span>
-                </div>
-                <div id="estado" style="background-color: #E0F9AF; padding: 20px; margin: 10px; width: 100%;">
-                    <span><?= $estado ?></span>
-                </div>
-                <div style="padding: 20px; display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                    <button type="button" class="btn" data-toggle="modal" data-target="#reviewModal"><i class="fas fa-check"></i></button>
-                    <button type="button" class="btn"><i class="fas fa-retweet"></i></button>
-                    <div>
-                        <label for="pdfUpload">Archivo PDF</label>
-                        <input type="file" id="pdfUpload" class="small-input" accept=".pdf" />
+            <div class="modal-body" id="infocliente">
+                <!-- Contenido del modal agregar -->
+
+                <p>
+                    <a class="btn btn-light" data-toggle="collapse" href="#collapseRevision" role="button" aria-expanded="false" aria-controls="collapseExample">
+                        Actualización
+                    </a>
+                    <a class="btn btn-light" data-toggle="collapse" href="#collapseRenovacion" role="button" aria-expanded="false" aria-controls="collapseExample">
+                        Renovación
+                    </a>
+                </p>
+                <div class="collapse show" id="collapseRevision">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="h4 text-muted">Actualizar Tarifario</div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div id="datTarifario">
+                                        <h5>Tarifario de servicios</h5>
+                                        <p>ID: 123456</p>
+                                    </div>
+                                    <div>
+                                        <div class="alert alert-success" role="alert">
+                                            <?= $estado ?>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="pdfUpload">Archivo PDF</label>
+                                        <input type="file" id="pdfUpload" class="small-input" accept=".pdf, .docx" />
+                                    </div>
+                                    <div>
+                                        <label for="periodsAssig">Asignacion de Periodo</label>
+                                        <select class="form-control">
+                                            <option value="">3 Meses</option>
+                                            <option value="">6 Meses</option>
+                                            <option value="">1 Año</option>
+                                            <option value="">Indefinido</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="h4 text-muted">Tarifario</div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <iframe src="Tarifario.pdf" class="w-100 " style="height: 600px;"></iframe>
+                                </div>
+                                <div class="card-footer">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <label for="periodoRevision">Agendar Periodo de Revisión</label>
-                <!-- Div para agendar revisiones -->
-                <div style="padding: 5px;">
-                    <label for="revisionDatetime">Inicio de Periodo:</label>
-                    <input type="datetime-local" id="revisionDatetime" name="revisionDatetime" style="width: 50%; border-radius: 10px;">
-                    <label for="revisionDatetime">Final de Periodo:</label>
-                    <input type="datetime-local" id="revisionDatetime" name="revisionDatetime" style="width: 50%; border-radius: 10px;">
+                <div class="collapse" id="collapseRenovacion">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="h4 text-muted">Actualizar Tarifario</div>
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div id="datTarifario">
+                                        <h5>Tarifario de servicios</h5>
+                                        <p>ID: 123456</p>
+                                    </div>
+                                    <div>
+                                        <label for="pdfUpload">Archivo PDF</label>
+                                        <input type="file" id="pdfUpload" class="small-input" accept=".pdf" />
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="h4 text-muted">Renovar Tarifario</div>
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Nombre del Tarifario</h5>
+                                    <iframe src="Tarifario.pdf" class="w-100" style="height: 500px;"></iframe>
+                                </div>
+                                <div class="card-footer">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -366,7 +403,6 @@ $estado1 = "Aquí va el estado"; // Reemplaza esto con el estado real del tarifa
         </div>
     </div>
 </div>
-
 <!-- Modal Revisión -->
 <div class="modal fade" id="reviewModal" tabindex="-1" role="dialog" aria-labelledby="reviewModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -411,7 +447,6 @@ $estado1 = "Aquí va el estado"; // Reemplaza esto con el estado real del tarifa
         </div>
     </div>
 </div>
-
 <!-- Modal de descarga -->
 <div class="modal fade" id="downModal" tabindex="-1" role="dialog" aria-labelledby="downModal" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -422,13 +457,18 @@ $estado1 = "Aquí va el estado"; // Reemplaza esto con el estado real del tarifa
             <div class="modal-body">
                 <p>Descarga el archivo generico.</p>
                 <div>
-                    <button type="button" class="btn btn-primary" data-dismiss="modal">Descargar</button>
+                    <button type="button" class="btn btn-ligth" data-dismiss="modal"><i class="fas fa-print"></i></button>
+                    <label for="button"> Tarifario </label>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-ligth" data-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
+<!-- Cerrar la conexión -->
+<?php $conn->close(); ?>
 <!-- Script que maneja el cambio de modales -->
 <script>
 $(document).ready(function() {
@@ -484,7 +524,6 @@ $(document).ready(function() {
     });
 });
 </script>
-
 <!-- Script para manejo de checkboxes -->
 <script>
 $(document).ready(function() {
@@ -497,7 +536,6 @@ $(document).ready(function() {
     });
 });
 </script>
-
 <!-- Script que deshabilita el botón de aprobado si el checkbox no está seleccionado -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -509,12 +547,54 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-
 <!-- Script que maneja la redirección al hacer clic en el botón de redirección -->
 <script>
 document.getElementById("redirectButton").addEventListener('click', function() {
     // Redirige a la página deseada
     window.location.href = './ad_tf_userPage.php';
+});
+</script>
+<!-- Script para obtener valor del id del tarifario -->
+<script>
+// Espera a que el DOM esté completamente cargado
+document.addEventListener('DOMContentLoaded', function() {
+    // Selecciona todos los botones que tienen la clase 'valor-btn'
+    const valorButtons = document.querySelectorAll('.valor-btn');
+
+    // Asigna un controlador de eventos de clic a cada botón
+    valorButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            // 'this' se refiere al botón que fue clickeado
+            const notaId = this.getAttribute('data-id'); // Obtiene el ID de la nota
+            console.log('ID de la nota:', notaId); // Muestra el ID en la consola
+            // Aquí puedes hacer lo que necesites con notaId
+        });
+    });
+});
+</script>
+<!-- Script para  -->
+<script>
+    $(document).ready(function(){
+        $('#previewModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget) // Boton que activa el modal
+            var tarifarioId = button.data('tarifario-id') // Extraer la información de atributos de datos
+            var modal = $(this)
+            // Aqui se establece la url del iframe con el tarifario_id como parametro
+            var url = "" +tarifarioId;
+            // Establece la url del iframe
+            modal.find('#previewIframe').html('src', url);
+        
+        })
+    });
+</script>
+<!-- Para el modal agregar -->
+<script>
+$(document).ready(function() {
+    $('.collapse').on('show.bs.collapse', function() {
+    // Cierra todos los elementos colapsables
+    $('.collapse').collapse('hide');
+    // Abre el elemento actual. Bootstrap se encarga de esto automáticamente, así que no es necesario hacerlo manualmente aquí.
+    });
 });
 </script>
 </body>

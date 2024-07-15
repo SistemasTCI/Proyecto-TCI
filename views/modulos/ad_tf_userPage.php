@@ -2,7 +2,7 @@
 <html>
 <head>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> <!-- Bootstrap CSS -->
-    <link href="/views/dist/css/ad_tf_style.css" rel="stylesheet"> <!-- Archivo CSS -->
+    <link href="./public/css/ad_tf_style.css" rel="stylesheet"> <!-- Archivo CSS -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"> <!-- Font Awesome -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script> <!-- jQuery -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script> <!-- Bootstrap JS -->
@@ -77,21 +77,6 @@ $estado1 = "Estado actualizado"; // Ejemplo de estado actualizado
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Cliente 1</td>
-                    <td>12345678A</td>
-                    <td>Dato 1</td>
-                    <td>Dato 2</td>
-                    <td>Dirección 1</td>
-                    <td><button type="button" class="<?= $claseEstado ?>"><?= $estado ?></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#previewModal"><i class="fas fa-eye"></i></button></td>
-                    <td>2023-06-01</td>
-                    <td>2024-11-01</td>
-                    <td>Usuario de Actualización</td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#histModal"><i class="fas fa-landmark"></i></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#checkModal"><i class="fas fa-check"></i></button></td>
-                    <td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#destructionModal"><i class="fas fa-trash"></i></button></td>
-                </tr>
                 <tr>
                     <td>Cliente 2</td>
                     <td>12345678B</td>
